@@ -13,7 +13,7 @@ pub fn solve_part_1() -> u32 {
 pub fn solve_part_2() -> u32 {
     let mut sum = 0;
     let cards = build_card_list();
-    let cache: &mut HashMap<usize, usize> = &mut HashMap::new();
+    let cache: &mut HashMap<usize, u32> = &mut HashMap::new();
     for i in 0 .. cards.len() {
         sum += process_cards(&cards, i, cache);
     }
@@ -36,26 +36,25 @@ fn build_card_list() -> Vec<(Vec<String>, Vec<String>)> {
     }).collect::<Vec<(Vec<String>, Vec<String>)>>()
 }
 
-fn process_cards(cards: &Vec<(Vec<String>, Vec<String>)>, i: usize, cache: &mut HashMap<usize, usize>) -> u32 {
-    let mut sum = 0;
-    match cards.get(i) {
-        Some((left, right)) => {
-            sum += 1;
-            let win_count = match cache.get(&i) {
-                Some(v) => *v,
-                None => {
-                    let count = left.iter().filter(|e| right.contains(e)).count();
-                    cache.insert(i, count);
-                    count
-                }
-            };
-            for o in 1 ..= win_count {
-                sum += process_cards(cards, i + o, cache)
+fn process_cards(cards: &Vec<(Vec<String>, Vec<String>)>, i: usize, cache: &mut HashMap<usize, u32>) -> u32 {
+    match cache.get(&i) {
+        Some(v) => *v,
+        None => {
+            let mut sum = 0;
+            match cards.get(i) {
+                Some((left, right)) => {
+                    sum += 1;
+                    let win_count = left.iter().filter(|e| right.contains(e)).count();
+                    for o in 1 ..= win_count {
+                        sum += process_cards(cards, i + o, cache)
+                    }
+                },
+                _ => {}
             }
-        },
-        _ => {}
+            cache.insert(i, sum);
+            sum
+        }
     }
-    sum
 }
 
 fn calculate_card_points(left: &Vec<String>, right: &Vec<String>) -> u32 {
